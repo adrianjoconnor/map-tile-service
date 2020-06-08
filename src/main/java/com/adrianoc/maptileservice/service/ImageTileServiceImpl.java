@@ -76,7 +76,7 @@ public class ImageTileServiceImpl implements ImageTileService {
     }
 
     @Override
-    public void addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo, String title) throws IOException {
+    public AvailableImageDto addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo, String title) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "bmp", byteArrayOutputStream);
         byte[] bmpData = byteArrayOutputStream.toByteArray();
@@ -85,9 +85,15 @@ public class ImageTileServiceImpl implements ImageTileService {
         imageSource.setBitmapBytes(bmpData);
         ImageSource createdImage = imageSourceDao.save(imageSource);
         Long id = createdImage.getId();
+
         bufferedImageCache.put(id, bufferedImage);
         imageInfoCache.put(id, imageInfo);
         availableImages.put(id, title);
+
+        AvailableImageDto availableImageDto = new AvailableImageDto();
+        availableImageDto.setTitle(title);
+        availableImageDto.setId(id);
+        return availableImageDto;
     }
 
     @Override

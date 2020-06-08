@@ -30,16 +30,23 @@ public class EndpointSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
-                .withUser(username).password(passwordEncoder().encode(password)).authorities(adminRealm);
+                .withUser(username)
+                .password(passwordEncoder().encode(password))
+                .roles(adminRealm);
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                .antMatchers("/v1/image/**").permitAll()
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .csrf()
+                .disable()
+                .authorizeRequests()
+                .antMatchers("/", "/v1/image/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                .antMatcher("/v1/admin/**")
                 .httpBasic()
+                .realmName(adminRealm)
                 .authenticationEntryPoint(authenticationEntryPoint);
     }
 
