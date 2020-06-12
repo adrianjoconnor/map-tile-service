@@ -17,7 +17,7 @@ import java.util.Base64;
 
 @Service
 public class AdminServiceImpl implements AdminService {
-    private ImageTileService imageTileService;
+    private final ImageTileService imageTileService;
 
     @Autowired
     public AdminServiceImpl (@Autowired ImageTileService  imageTileService) {
@@ -46,7 +46,7 @@ public class AdminServiceImpl implements AdminService {
             imageInfoDto.setHeight(bufferedImage.getHeight());
             imageInfoDto.setWidth(bufferedImage.getWidth());
 
-            return imageTileService.addImage(bufferedImage, imageInfoDto, title);
+            return imageTileService.addImage(bufferedImage, imageInfoDto);
         } catch (IOException ioe) {
             throw new ImageLoadingException("Error while loading image. " + ioe.getMessage());
         } catch (IllegalArgumentException iae) {
