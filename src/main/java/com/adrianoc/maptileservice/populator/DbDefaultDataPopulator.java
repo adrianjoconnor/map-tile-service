@@ -12,12 +12,12 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 @Component
-public class H2DbDefaultDataPopulator implements InitializingBean {
+public class DbDefaultDataPopulator implements InitializingBean {
     private ImageSourceDao imageSourceDao;
     private ImageTileService imageTileService;
 
     @Autowired
-    public H2DbDefaultDataPopulator(
+    public DbDefaultDataPopulator(
             @Autowired ImageSourceDao imageSourceDao,
             @Autowired ImageTileService imageTileService) {
         this.imageSourceDao = imageSourceDao;
@@ -33,11 +33,11 @@ public class H2DbDefaultDataPopulator implements InitializingBean {
     }
 
     private void createAndSaveImageSource(String resImage, String title) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(H2DbDefaultDataPopulator.class.getResourceAsStream(resImage));
+        BufferedImage bufferedImage = ImageIO.read(DbDefaultDataPopulator.class.getResourceAsStream(resImage));
         ImageInfoDto imageInfo = new ImageInfoDto();
         imageInfo.setHeight(bufferedImage.getHeight());
         imageInfo.setWidth(bufferedImage.getWidth());
         imageInfo.setTitle(title);
-        imageTileService.addImage(bufferedImage, imageInfo, title);
+        imageTileService.addImage(bufferedImage, imageInfo);
     }
 }

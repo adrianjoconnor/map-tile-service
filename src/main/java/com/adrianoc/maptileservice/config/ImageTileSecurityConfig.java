@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
-public class EndpointSecurityConfig extends WebSecurityConfigurerAdapter {
+public class ImageTileSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${admin.endpoint.username}")
     private String username;
 

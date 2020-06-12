@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ImageTileService {
     byte[] getMapTile(Long imageId, int startX, int StartY, int xlen, int yLen);
-    AvailableImageDto addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo, String title) throws IOException;
+    AvailableImageDto addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo) throws IOException;
     ImageInfoDto getImageProps(long id);
     List<AvailableImageDto> getAvailableImages();
 }

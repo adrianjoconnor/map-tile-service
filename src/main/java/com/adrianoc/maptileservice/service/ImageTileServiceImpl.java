@@ -26,12 +26,12 @@ import java.util.Map;
 public class ImageTileServiceImpl implements ImageTileService {
     private static final Logger LOG = LoggerFactory.getLogger(ImageTileServiceImpl.class);
 
-    private ImageTileProcessor imageTileProcessor;
-    private ImageSourceDao imageSourceDao;
-    private JpegConverter jpegConverter;
-    private Map<Long,BufferedImage> bufferedImageCache;
-    private Map<Long,ImageInfoDto> imageInfoCache;
-    private Map<Long, String> availableImages;
+    private final ImageTileProcessor imageTileProcessor;
+    private final ImageSourceDao imageSourceDao;
+    private final JpegConverter jpegConverter;
+    private final Map<Long,BufferedImage> bufferedImageCache;
+    private final Map<Long,ImageInfoDto> imageInfoCache;
+    private final Map<Long, String> availableImages;
 
     @Autowired
     public ImageTileServiceImpl(
@@ -76,7 +76,8 @@ public class ImageTileServiceImpl implements ImageTileService {
     }
 
     @Override
-    public AvailableImageDto addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo, String title) throws IOException {
+    public AvailableImageDto addImage(BufferedImage bufferedImage, ImageInfoDto imageInfo) throws IOException {
+        String title = imageInfo.getTitle();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "bmp", byteArrayOutputStream);
         byte[] bmpData = byteArrayOutputStream.toByteArray();
@@ -98,6 +99,9 @@ public class ImageTileServiceImpl implements ImageTileService {
 
     @Override
     public ImageInfoDto getImageProps(long id) {
+        if (!imageInfoCache.containsKey(id)) {
+            throw new NotFoundException("Properties for image with ID " + id + " could not be found.");
+        }
         return imageInfoCache.get(id);
     }
 
