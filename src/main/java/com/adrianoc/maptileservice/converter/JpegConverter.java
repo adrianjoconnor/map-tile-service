@@ -11,6 +11,7 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,6 +26,20 @@ public class JpegConverter {
             throw new InvalidConfigValueException("JPEG Quality is not within the required bounds.");
         }
         this.jpegQuality = jpegQuality;
+    }
+
+    public byte[] convertToJpeg(Image image) throws IOException {
+        if (image instanceof BufferedImage)
+        {
+            return convertToJpeg((BufferedImage) image);
+        }
+        BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_RGB);
+
+        Graphics2D graphics = bufferedImage.createGraphics();
+        graphics.drawImage(image, 0, 0, null);
+        graphics.dispose();
+
+        return convertToJpeg(bufferedImage);
     }
 
     public byte[] convertToJpeg(BufferedImage bufferedImage) throws IOException {

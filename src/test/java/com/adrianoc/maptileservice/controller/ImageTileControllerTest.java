@@ -95,6 +95,44 @@ public class ImageTileControllerTest {
     }
 
     @Test
+    public void getPreview_success() throws Exception {
+        long imageId = 44L;
+        int reqMaxSide = 400;
+        byte[] responseBytes = getMockJpegResponseBytes();
+        when(imageTileService.getPreview(imageId, reqMaxSide)).thenReturn(responseBytes);
+        this.mockMvc.perform(get("/v1/image/preview/" + imageId + "/" + reqMaxSide))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(responseBytes));
+    }
+
+    @Test
+    public void getPreview_invalidParams() throws Exception {
+        long imageId = 44L;
+        int reqMaxSide = 400;
+        when(imageTileService.getPreview(imageId, reqMaxSide)).thenThrow(new InvalidParamatersException(""));
+        this.mockMvc.perform(get("/v1/image/preview/" + imageId + "/" + reqMaxSide))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getPreview_notFound() throws Exception {
+        long imageId = 44L;
+        int reqMaxSide = 400;
+        when(imageTileService.getPreview(imageId, reqMaxSide)).thenThrow(new NotFoundException(""));
+        this.mockMvc.perform(get("/v1/image/preview/" + imageId + "/" + reqMaxSide))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void getPreview_imageConversionException() throws Exception {
+        long imageId = 44L;
+        int reqMaxSide = 400;
+        when(imageTileService.getPreview(imageId, reqMaxSide)).thenThrow(new ImageConversionException(""));
+        this.mockMvc.perform(get("/v1/image/preview/" + imageId + "/" + reqMaxSide))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
     public void getImageProps_success() throws Exception {
         long imageId = 7L;
         ImageInfoDto mockImageInfoDto = new ImageInfoDto();
