@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,9 +30,10 @@ public class ImageTileServiceImpl implements ImageTileService {
     private final ImageTileProcessor imageTileProcessor;
     private final ImageSourceDao imageSourceDao;
     private final JpegConverter jpegConverter;
-    private final Map<Long,BufferedImage> bufferedImageCache;
+    private final Map<Long,BufferedImage> sourceImageCache;
     private final Map<Long,ImageInfoDto> imageInfoCache;
     private final Map<Long, String> availableImages;
+    private final Map<Long,Map<Integer,byte[]>> previewCache;
 
     @Autowired
     public ImageTileServiceImpl(
@@ -42,9 +44,10 @@ public class ImageTileServiceImpl implements ImageTileService {
         this.imageTileProcessor = imageTileProcessor;
         this.imageSourceDao = imageSourceDao;
         this.jpegConverter = jpegConverter;
-        bufferedImageCache = new HashMap<>();
+        sourceImageCache = new HashMap<>();
         imageInfoCache = new HashMap<>();
         availableImages = new HashMap<>();
+        previewCache = new HashMap<>();
         populateCache();
     }
 
@@ -53,10 +56,10 @@ public class ImageTileServiceImpl implements ImageTileService {
         if (imageId == null) {
             throw new InvalidParamatersException("Image ID is missing.");
         }
-        if (!bufferedImageCache.containsKey(imageId)) {
+        if (!sourceImageCache.containsKey(imageId)) {
             throw new NotFoundException("Image with ID \"" + imageId + "\" not found.");
         }
-        BufferedImage sourceImage = bufferedImageCache.get(imageId);
+        BufferedImage sourceImage = sourceImageCache.get(imageId);
         try {
             BufferedImage tile = imageTileProcessor.getTile(sourceImage, startX, xLen, startY, yLen);
             return jpegConverter.convertToJpeg(tile);
@@ -64,12 +67,54 @@ public class ImageTileServiceImpl implements ImageTileService {
             throw new InvalidParamatersException("Tile is out of range for this image: " + e.getMessage());
         } catch (IOException e) {
             throw new ImageConversionException(
-                    "Error converting tile to JPEG. mapId: "
+                    "Error converting tile to JPEG. imageId: "
                             + imageId
                             + ", startX: " + startX
                             + ", startY: " + startY
                             + ", xLen: " + xLen
                             + ", yLen: " + yLen
+                            + ", IOException: " + e.toString()
+            );
+        }
+    }
+
+    @Override
+    public byte[] getPreview(Long imageId, int reqMaxSide) {
+        if (imageId == null) {
+            throw new InvalidParamatersException("Image with ID " + imageId + " not present.");
+        }
+        if (reqMaxSide < 1) {
+            throw new InvalidParamatersException("MaxSide value must be at least 1. " + reqMaxSide + " is invalid.");
+        }
+        if (!sourceImageCache.containsKey(imageId)) {
+            throw new NotFoundException("Could not find preview for image with ID " + imageId);
+        }
+        if (previewCache.containsKey(imageId) && previewCache.get(imageId).containsKey(reqMaxSide)) {
+            return previewCache.get(imageId).get(reqMaxSide);
+        }
+        int scaleMaxSide = reqMaxSide;
+        BufferedImage sourceImage = sourceImageCache.get(imageId);
+        int sourceHeight = sourceImage.getHeight();
+        int sourceWidth = sourceImage.getWidth();
+        float widthHeightRatio = (0.0f + sourceHeight) / sourceWidth;
+        int scaleWidth;
+        int scaleHeight;
+        if (widthHeightRatio > 1.0f) {
+            scaleWidth = (int) (scaleMaxSide * (1 / widthHeightRatio));
+            scaleHeight = scaleMaxSide;
+        } else {
+            scaleWidth = scaleMaxSide;
+            scaleHeight = (int) (scaleMaxSide * widthHeightRatio);
+        }
+        Image preview = sourceImage.getScaledInstance(scaleWidth, scaleHeight, Image.SCALE_FAST);
+        try {
+            byte[] previewJpegBytes = jpegConverter.convertToJpeg(preview);
+            previewCache.get(imageId).put(reqMaxSide, previewJpegBytes);
+            return previewJpegBytes;
+        } catch (IOException e) {
+            throw new ImageConversionException(
+                    "Error converting tile to JPEG. imageId: "
+                            + imageId
                             + ", IOException: " + e.toString()
             );
         }
@@ -87,9 +132,10 @@ public class ImageTileServiceImpl implements ImageTileService {
         ImageSource createdImage = imageSourceDao.save(imageSource);
         Long id = createdImage.getId();
 
-        bufferedImageCache.put(id, bufferedImage);
+        sourceImageCache.put(id, bufferedImage);
         imageInfoCache.put(id, imageInfo);
         availableImages.put(id, title);
+        previewCache.put(id, new HashMap<>());
 
         AvailableImageDto availableImageDto = new AvailableImageDto();
         availableImageDto.setTitle(title);
@@ -129,9 +175,10 @@ public class ImageTileServiceImpl implements ImageTileService {
             imageInfo.setTitle(imageSource.getTitle());
             imageInfo.setWidth(bufferedImage.getWidth());
             imageInfo.setHeight(bufferedImage.getHeight());
-            bufferedImageCache.put(id, bufferedImage);
+            sourceImageCache.put(id, bufferedImage);
             imageInfoCache.put(id, imageInfo);
             availableImages.put(id, imageSource.getTitle());
+            previewCache.put(id, new HashMap<>());
         }
     }
 

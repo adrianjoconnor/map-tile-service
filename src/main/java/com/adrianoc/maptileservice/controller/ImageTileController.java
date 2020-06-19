@@ -36,6 +36,16 @@ public class ImageTileController {
     }
 
     @CrossOrigin("*")
+    @GetMapping(value = "/preview/{imageId}/{maxSidePx}", produces = "image/jpeg")
+    public ResponseEntity<byte[]> getPreview(
+            @PathVariable("imageId") Long imageId,
+            @PathVariable("maxSidePx") int maxSidePx
+    ) {
+        byte[] previewBytes = imageTileService.getPreview(imageId, maxSidePx);
+        return new ResponseEntity<>(previewBytes, HttpStatus.OK);
+    }
+
+    @CrossOrigin("*")
     @GetMapping(value = "/props/{imageId}", produces = "application/json")
     public ResponseEntity<ImageInfoDto> getImageProperties(@PathVariable Long imageId) {
         return new ResponseEntity<>(imageTileService.getImageProps(imageId), HttpStatus.OK);

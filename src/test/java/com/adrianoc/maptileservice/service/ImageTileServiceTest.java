@@ -17,9 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +38,7 @@ class ImageTileServiceTest {
     private ImageSourceDao imageSourceDao;
 
     private final long presentImageId = 28L;
+    private final long presentTallImageId = 38L;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
@@ -43,7 +46,11 @@ class ImageTileServiceTest {
         imageTileProcessor = Mockito.mock(ImageTileProcessor.class);
         imageSourceDao = Mockito.mock(ImageSourceDao.class);
         ImageSource imageSource = getSampleImageSource();
-        when(imageSourceDao.findAll()).thenReturn(Collections.singletonList(imageSource));
+        ImageSource tallImageSource = getSampleImageTallSource();
+        List<ImageSource> imageSources = new ArrayList<>();
+        imageSources.add(imageSource);
+        imageSources.add(tallImageSource);
+        when(imageSourceDao.findAll()).thenReturn(imageSources);
         jpegConverter = Mockito.mock(JpegConverter.class);
         imageTileService = new ImageTileServiceImpl(imageTileProcessor, imageSourceDao, jpegConverter);
     }
@@ -94,6 +101,80 @@ class ImageTileServiceTest {
                 .thenReturn(mockTile);
         when(jpegConverter.convertToJpeg(mockTile)).thenThrow(new IOException());
         Assertions.assertThrows(ImageConversionException.class, () ->imageTileService.getMapTile(presentImageId, startX, startY, xLen, yLen));
+    }
+
+    @Test
+    void getPreview_successFirstTime() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 400;
+        byte[] preview = imageTileService.getPreview(presentImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_tallImageSuccess() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 200;
+        byte[] preview = imageTileService.getPreview(presentTallImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_biggerThanImage() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 600;
+        byte[] preview = imageTileService.getPreview(presentTallImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_successFromCache() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 400;
+        imageTileService.getPreview(presentImageId, reqMaxSide);
+        byte[] preview = imageTileService.getPreview(presentImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_successDifferingSize() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 400;
+        imageTileService.getPreview(presentImageId, 300);
+        byte[] preview = imageTileService.getPreview(presentImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_successDifferingSizeFromCache() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenReturn(getMockJpegPreview());
+        int reqMaxSide = 400;
+        imageTileService.getPreview(presentImageId, reqMaxSide);
+        imageTileService.getPreview(presentImageId, 300);
+        byte[] preview = imageTileService.getPreview(presentImageId, reqMaxSide);
+        Assertions.assertArrayEquals(getMockJpegPreview(), preview);
+    }
+
+    @Test
+    void getPreview_nullImageId() throws IOException {
+        Assertions.assertThrows(InvalidParamatersException.class, () -> imageTileService.getPreview(null, 400));
+    }
+
+    @Test
+    void getPreview_negativeMaxSide() throws IOException {
+        Assertions.assertThrows(InvalidParamatersException.class, () -> imageTileService.getPreview(presentImageId, -5));
+    }
+
+    @Test
+    void getPreview_imageNotPresent() throws IOException {
+        Assertions.assertThrows(NotFoundException.class, () -> imageTileService.getPreview(544L, 400));
+    }
+
+    @Test
+    void getPreview_conversionIOException() throws IOException {
+        when(jpegConverter.convertToJpeg(any(Image.class))).thenThrow(new IOException());
+        int reqMaxSide = 200;
+        Assertions.assertThrows(ImageConversionException.class, () -> imageTileService.getPreview(presentTallImageId, reqMaxSide));
     }
 
     @Test
@@ -164,13 +245,20 @@ class ImageTileServiceTest {
     @Test
     void getAvailableImagesTest() {
         List<AvailableImageDto> availableImageDtos = imageTileService.getAvailableImages();
-        AvailableImageDto setupAvailableImage = availableImageDtos.get(0);
+        AvailableImageDto setupAvailableImage = availableImageDtos.get(1);
         Assertions.assertEquals("Dolphin", setupAvailableImage.getTitle());
         Assertions.assertEquals(28L, setupAvailableImage.getId());
+        AvailableImageDto setupTallAvailableImage = availableImageDtos.get(0);
+        Assertions.assertEquals("TallMap", setupTallAvailableImage.getTitle());
+        Assertions.assertEquals(38L, setupTallAvailableImage.getId());
     }
 
     private ImageSource getSampleImageSource() throws IOException {
         return objectMapper.readValue(ImageTileServiceTest.class.getResourceAsStream("/sample-image-source.json"), ImageSource.class);
+    }
+
+    private ImageSource getSampleImageTallSource() throws IOException {
+        return objectMapper.readValue(ImageTileServiceTest.class.getResourceAsStream("/sample-tall-image-source.json"), ImageSource.class);
     }
 
     private BufferedImage getMockBufferedImageTile(int startX, int startY, int xLen, int yLen) throws IOException {
@@ -186,6 +274,14 @@ class ImageTileServiceTest {
 
     private byte[] getMockJpegTile() throws IOException {
         InputStream jpegB64InputStream = ImageTileServiceTest.class.getResourceAsStream("/sample-jpeg-result-b64.txt");
+        String b64String = new BufferedReader(new InputStreamReader(jpegB64InputStream, StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+        return Base64.getDecoder().decode(b64String);
+    }
+
+    private byte[] getMockJpegPreview() throws IOException {
+        InputStream jpegB64InputStream = ImageTileServiceTest.class.getResourceAsStream("/sample-jpeg-preview-b64.txt");
         String b64String = new BufferedReader(new InputStreamReader(jpegB64InputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));

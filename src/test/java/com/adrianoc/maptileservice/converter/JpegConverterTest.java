@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,9 +31,17 @@ class JpegConverterTest {
     }
 
     @Test
-    void convertJpeg_success() throws IOException {
+    void convertJpegBI_success() throws IOException {
         BufferedImage sourceImage = getMockBufferedImage();
         byte[] jpegBytes = jpegConverter.convertToJpeg(sourceImage);
+        Assertions.assertArrayEquals(getExpectedJpeg(), jpegBytes);
+    }
+
+    @Test
+    void convertJpegI_success() throws IOException {
+        BufferedImage sourceImage = getMockBufferedImage();
+        Image image = sourceImage;
+        byte[] jpegBytes = jpegConverter.convertToJpeg(image);
         Assertions.assertArrayEquals(getExpectedJpeg(), jpegBytes);
     }
 
