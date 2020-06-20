@@ -29,8 +29,8 @@ class DbDefaultDataPopulatorTest {
     void populateDefaultData_noImagesPresent() throws Exception {
         int img1Width = 11870;
         int img1Height = 3892;
-        int img2Width = 14283;
-        int img2Height = 3050;
+        int img2Width = 12854;
+        int img2Height = 2889;
 
         when(imageSourceDao.count()).thenReturn(0L);
         dbDefaultDataPopulator.afterPropertiesSet();
@@ -44,7 +44,7 @@ class DbDefaultDataPopulatorTest {
         Assertions.assertEquals(img1Height, bufferedImage1.getHeight());
         Assertions.assertEquals(img1Width, imageInfoDto1.getWidth());
         Assertions.assertEquals(img1Height, imageInfoDto1.getHeight());
-        Assertions.assertEquals("Fenit", imageInfoDto1.getTitle());
+        Assertions.assertEquals("North Kerry", imageInfoDto1.getTitle());
 
         BufferedImage bufferedImage2 = bICaptor.getAllValues().get(1);
         ImageInfoDto imageInfoDto2 = iIDCaptor.getAllValues().get(1);
@@ -52,7 +52,7 @@ class DbDefaultDataPopulatorTest {
         Assertions.assertEquals(img2Height, bufferedImage2.getHeight());
         Assertions.assertEquals(img2Width, imageInfoDto2.getWidth());
         Assertions.assertEquals(img2Height, imageInfoDto2.getHeight());
-        Assertions.assertEquals("North", imageInfoDto2.getTitle());
+        Assertions.assertEquals("Innsbruck (Ampass)", imageInfoDto2.getTitle());
     }
 
     @Test
