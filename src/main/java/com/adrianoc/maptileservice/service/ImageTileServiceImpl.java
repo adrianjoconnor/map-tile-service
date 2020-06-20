@@ -106,7 +106,7 @@ public class ImageTileServiceImpl implements ImageTileService {
             scaleWidth = scaleMaxSide;
             scaleHeight = (int) (scaleMaxSide * widthHeightRatio);
         }
-        Image preview = sourceImage.getScaledInstance(scaleWidth, scaleHeight, Image.SCALE_FAST);
+        Image preview = sourceImage.getScaledInstance(scaleWidth, scaleHeight, Image.SCALE_SMOOTH);
         try {
             byte[] previewJpegBytes = jpegConverter.convertToJpeg(preview);
             previewCache.get(imageId).put(reqMaxSide, previewJpegBytes);
