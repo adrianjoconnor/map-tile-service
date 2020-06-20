@@ -29,8 +29,8 @@ class DbDefaultDataPopulatorTest {
     void populateDefaultData_noImagesPresent() throws Exception {
         int img1Width = 11870;
         int img1Height = 3892;
-        int img2Width = 12854;
-        int img2Height = 2889;
+        int img2Width = 14658;
+        int img2Height = 4171;
 
         when(imageSourceDao.count()).thenReturn(0L);
         dbDefaultDataPopulator.afterPropertiesSet();
