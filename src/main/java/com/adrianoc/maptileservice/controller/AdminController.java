@@ -12,12 +12,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.Resource;
 
+/**
+ * Controller for administering the available images.
+ */
 @Controller
 @RequestMapping("/v1/admin")
 public class AdminController {
     @Resource
     private AdminService adminService;
 
+    /**
+     * Add an image by specifying it's title and binary data.
+     * @param addImageDto The iamge to add.
+     * @return AvailableImageDto containing the ID of the newly created image.
+     */
     @PostMapping(value = "/addImage")
     public ResponseEntity<AvailableImageDto> addImage(@RequestBody AddImageDto addImageDto) {
         return new ResponseEntity<>(adminService.addImage(addImageDto), HttpStatus.OK);

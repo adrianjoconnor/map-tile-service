@@ -16,6 +16,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+/**
+ * Converter which takes an image in raw form and returns the contents of a JPEG file for that image.
+ */
 @Component
 public class JpegConverter {
     private int jpegQuality;
@@ -28,6 +31,12 @@ public class JpegConverter {
         this.jpegQuality = jpegQuality;
     }
 
+    /**
+     * Convert an Image to JPEG
+     * @param image Image to convert.
+     * @return Byte array containing the contents of a JPEG file representing the image.
+     * @throws IOException
+     */
     public byte[] convertToJpeg(Image image) throws IOException {
         if (image instanceof BufferedImage)
         {
@@ -42,6 +51,12 @@ public class JpegConverter {
         return convertToJpeg(bufferedImage);
     }
 
+    /**
+     * Convert a BufferedImage to Jpeg.
+     * @param bufferedImage The image to convert
+     * @return Byte array containing the contents of a JPEG file representing the image.
+     * @throws IOException
+     */
     public byte[] convertToJpeg(BufferedImage bufferedImage) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 

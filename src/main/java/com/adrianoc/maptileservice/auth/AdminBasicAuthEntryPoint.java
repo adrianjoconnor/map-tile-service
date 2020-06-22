@@ -10,6 +10,9 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Entry point for authenticating Admin API
+ */
 @Component
 public class AdminBasicAuthEntryPoint extends BasicAuthenticationEntryPoint {
     @Value("admin.realm")

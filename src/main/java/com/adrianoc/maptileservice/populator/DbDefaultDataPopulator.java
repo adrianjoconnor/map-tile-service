@@ -11,6 +11,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+/**
+ * Creates default image entries in the database from images in resources.
+ */
 @Component
 public class DbDefaultDataPopulator implements InitializingBean {
     private ImageSourceDao imageSourceDao;
