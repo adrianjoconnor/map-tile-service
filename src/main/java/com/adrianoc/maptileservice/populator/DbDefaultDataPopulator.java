@@ -30,8 +30,8 @@ public class DbDefaultDataPopulator implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         if (imageSourceDao.count() == 0) {
-            createAndSaveImageSource("/north-kerry.png", "North Kerry");
             createAndSaveImageSource("/innsbruck-ampass-2.png", "Innsbruck (Ampass)");
+            createAndSaveImageSource("/north-kerry.png", "North Kerry");
         }
     }
 

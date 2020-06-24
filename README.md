@@ -3,6 +3,8 @@
 Spring-boot service for storing large raw images and serving compressed tiles or sub-sections of the image according to the given parameters.
 
 ## Usage
+It is possible to run this example on a machine with 4GB ram, however 8GB or greater if you're multitasking is more comfortable.
+You may notice it takes a little longer than most projects to check out - this is because the sample images are large. About 1GB is required to store the git history and build the project.
 
 There is an example frontend here: https://github.com/adrianjoconnor/image-tile-fe
 
@@ -29,3 +31,7 @@ And then run this:
 `npm run serve`
 
 Then open your browser and go to http://localhost:8081 and it should all be running.
+
+If you'd prefer, you can build a docker image for the backend by running 
+`docker build -t adrianoc/map-tile-service .`
+from the root directory of the project.
